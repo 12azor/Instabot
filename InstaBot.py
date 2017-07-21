@@ -1,9 +1,13 @@
 import requests
 import urllib
 import json
+import access_token
+my_token=access_token.token
 
-my_token="1606815543.feefa28.c2601ebc8ed5493481c5e0b5f72ec84e"
+
 base_url="https://api.instagram.com/v1/"
+
+
 
 #--------------------Function to get Self Information--------------------#
 
@@ -238,7 +242,7 @@ while True:
     user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. Exit.\nOption: "))
     
     if user_option==1:
-        choice_option=int(raw_input("Do you want to:\n1. Fetch and display your all user details.\n2. Fetch and display your recent post's details.\n3.Recent media liked.\nOption: "))
+        choice_option=int(raw_input("Do you want to:\n1. Fetch and display your all user details.\n2. Fetch and display your recent post's details.\n3. Recent media liked.\nOption: "))
         
         if choice_option==1:
             self_info()
@@ -305,9 +309,4 @@ while True:
         continue
     elif user_option==3:
         print "\n--------------------------------------------------------------\nThe application will now exit...Thanks for using the INSTA-BOT"
-        exit()
-                
-                
-                
-                
-        
+        exit()                
