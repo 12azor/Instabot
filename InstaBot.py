@@ -41,7 +41,7 @@ def get_own_post():
         else:
             print "You have no post."
     else:
-        print "Some other code recieved."
+        return 0
 
 
 #--------------------Function to Check if user exixts and has some Information--------------------#
@@ -52,7 +52,7 @@ def search_user(user_name):
         print "A User With Such Username Exists."
         return(1)
     else:
-        print "The Username does not exists OR does not contain any information to retrive."
+        print "Either the Username does not exist in sandbox OR does not contain any information to retrive."
         return(0)
     
 
@@ -61,14 +61,12 @@ def search_user(user_name):
 def get_user_post(username):
     user_id = get_user_id(username)
     if user_id == None:
-        print "User does'nt exist"
+        print "User doesmnt exist"
     else:
         url= base_url + 'users/%s/media/recent/?access_token=%s'% (user_id, my_token)
         user_media = requests.get(url).json()
-        print user_media["data"]
         if user_media['meta']['code'] == 200:
             if len(user_media['data']):
-                print "Info of the Recent Media is: "+str(json.dumps(user_media['data'][0],indent=3))
                 return user_media['data'][0]['id']
             else:
                 print "There is no recent post!"
@@ -84,7 +82,20 @@ def self_download_post():
     image_url = result['data'][0]['images']['standard_resolution']['url']
     urllib.urlretrieve(image_url, image_name )
     print "Your image has been downloaded!"
-    
+
+
+#--------------------Function to download USER's recent post--------------------#
+def user_download_post(user_name):
+    user_id = get_user_id(user_name)
+    if user_id != None:
+        url = (base_url + 'users/%s/media/recent/?access_token=%s') % (user_id, my_token)
+        user_media = requests.get(url).json()
+        image_name = raw_input("\nEnter the image name you want to save it with (append '.jpeg' at the end): ") 
+        image_url = user_media['data'][0]['images']['standard_resolution']['url']
+        urllib.urlretrieve(image_url, image_name)
+        print "Your image has been downloaded!"
+    else:
+        print "User Doesnot Exist"
 
 
 while True:
@@ -98,9 +109,12 @@ while True:
             
         elif choice_option==2:
             my_post_id=get_own_post()
-            print "My recent post's ID is: "+str(my_post_id)
-            print "The recent Image will now be downloaded...."
-            self_download_post()
+            if my_post_id==0:
+                print "Some other code other than 200 recieved."
+            elif my_post_id != None:
+                print "My recent post's ID is: "+str(my_post_id)
+                print "The recent Image will now be downloaded...."
+                self_download_post()
             
         else:
             print "You have entered a wrong option. Try again./n"
@@ -123,5 +137,8 @@ while True:
                     
             elif username_choice==2:
                 media_id=get_user_post(username)
-                print "The ID of recent media is: "+str(media_id)
+                if media_id!= None:
+                    print "The ID of recent media is: "+str(media_id)
+                    print "The recent Image will now be downloaded....."
+                    user_download_post(username)
         
