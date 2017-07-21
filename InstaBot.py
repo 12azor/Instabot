@@ -64,7 +64,7 @@ def get_own_post():
             print(json.dumps(my_posts_info, indent= 3))
             return result["data"][0]["id"]
         else:
-            print "You have no post."
+            print "\nYou have no posts."
     else:
         return 0
 
@@ -92,18 +92,20 @@ def search_user(user_name):
 def get_user_post(username):
     user_id = get_user_id(username)
     if user_id == None:
-        print "User doesmnt exist"
+        print "User does'nt exist"
+        return None
     else:
         url= base_url + 'users/%s/media/recent/?access_token=%s'% (user_id, my_token)
         user_media = requests.get(url).json()
         if user_media['meta']['code'] == 200:
             if len(user_media['data']):
-                option=int(raw_input("You want to choose the post on the basis of:\n1. Most Recent\n2. Max Likes\n3. Max Comments\n4. Least Comments.\nOption: "))
+                #========MENU TO PUT PARAMETERS FOR SELECTING THE MEDIA========#                
+                option=int(raw_input("You want to choose the post on the basis of:\n1. Most Recent\n2. Max Likes\n3. Max Comments\n4. Least Comments.\n5. Least Likes.\nOption: "))
                                      
-                if option==1:
+                if option==1:                                   #for recent media
                     return user_media['data'][0]['id']
                                      
-                elif option==2:
+                elif option==2:                                 #for media with max likes
                     counter=1
                     media_id=user_media["data"][0]["id"]
                     max_like=user_media["data"][0]
@@ -114,7 +116,7 @@ def get_user_post(username):
                         counter=counter+1
                     return media_id
                               
-                elif option==3:
+                elif option==3:                                 #for media with max comments
                     counter=1
                     media_id=user_media["data"][0]["id"]
                     max_like=user_media["data"][0]
@@ -125,7 +127,7 @@ def get_user_post(username):
                         counter=counter+1
                     return media_id
 
-                elif option==4:
+                elif option==4:                                 #for media with least comments
                     counter=1
                     media_id=user_media["data"][0]["id"]
                     max_like=user_media["data"][0]
@@ -135,9 +137,22 @@ def get_user_post(username):
                             media_id=max_like["id"]
                         counter=counter+1
                     return media_id
-                              
+
+                elif option==5:                                 #for media with least likes                                
+                    counter=1
+                    media_id=user_media["data"][0]["id"]
+                    max_like=user_media["data"][0]
+                    while len(user_media["data"])>counter:
+                        if max_like["likes"]["count"]>user_media["data"][counter]["likes"]["count"]:
+                            max_like=user_media["data"][counter]
+                            media_id=max_like["id"]
+                        counter=counter+1
+                    return media_id
+
+                else:
+                    print "\nWrong input....try again.\n"
             else:
-                print "There is no post!"
+                print "\nThere are no posts posted my %s.\n" %(username)
         else:
             print "Status code other than 200 received!"
 
@@ -207,14 +222,15 @@ def user_download_post(user_name,media_id):
 
 def make_a_comment(user_name):
     media_id=get_user_post(user_name)
-    comment=raw_input("Enter the comment you want to post: ")
-    payload = {"access_token": my_token, "text" : comment}
-    request_url = (base_url + "media/%s/comments") % (media_id)
-    make_comment = requests.post(request_url, payload).json()
-    if make_comment['meta']['code'] == 200:
-        print "\nSuccessfully added the comment!"
-    else:
-        print "\nUnable to add the comment. Please try again!"
+    if media_id!=None:
+        comment=raw_input("Enter the comment you want to post: ")
+        payload = {"access_token": my_token, "text" : comment}
+        request_url = (base_url + "media/%s/comments") % (media_id)
+        make_comment = requests.post(request_url, payload).json()
+        if make_comment['meta']['code'] == 200:
+            print "\nSuccessfully added the comment!"
+        else:
+            print "\nUnable to add the comment. Please try again!"
 
 
 
@@ -238,6 +254,8 @@ def like_a_post(user_name):
 #=============================================Main Program with menu=============================================#
 
 
+
+print "\n*******WELCOME TO THE INSTA-BOT*******\n"
 while True:
     user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. Exit.\nOption: "))
     
