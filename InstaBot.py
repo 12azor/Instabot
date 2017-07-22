@@ -1,14 +1,15 @@
-import requests
-import urllib
+import requests                                         #allows to send HTTP requests
+import urllib                                           #allows to fetch data across the World Wide Web
 import json
 import access_token
 import matplotlib.pyplot as plt
+import added_sandbox_users
 
 
 my_token=access_token.token
 
 
-base_url="https://api.instagram.com/v1/"
+base_url="https://api.instagram.com/v1/"                #base url
 
 
 
@@ -298,16 +299,18 @@ def hashtag_analysis(username):
 
 ##################################################################################################################
         
-#=============================================Main Program with menu=============================================#
+#==================================================Main Program==================================================#
 
 
 
 print "\n*******WELCOME TO THE INSTA-BOT*******\n"
 while True:
-    user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. determine a user's interests based on hashtag analysis of recent posts and plot the same using matplotlib.\n4. Exit.\nOption: "))
+    user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. Determine a user's interests based on hashtag analysis of recent posts and plot the same using matplotlib.\n4. Exit.\nOption: "))
     
     if user_option==1:
         choice_option=int(raw_input("Do you want to:\n1. Fetch and display your all user details.\n2. Fetch and display your recent post's details.\n3. Recent media liked.\nOption: "))
+
+        #-------------------------MENU FOR SELF USER--------------------------#
         
         if choice_option==1:
             self_info()
@@ -331,12 +334,17 @@ while True:
         continue
     
     elif user_option==2:
-        username=raw_input("Enter the username: ")
+        print "\nUsers present in the Sandbox are:\n(PLEASE REFER TO TO THE README.md FILE FROM GIT)\n\n(Admin)legenwait4itdary"
+        for i in added_sandbox_users.added_sandbox_users:
+            print i
+        username=raw_input("\nEnter the username: ")
         validate_username=search_user(username)
         
         if validate_username:
             username_choice=int(raw_input("Would you like to:\n1. Get %s 's user ID.\n2. Fetch %s 's POST.\n3. Print general Info of %s.\n4. Get comments on a post of %s.\n5. Make a comment on %s 's post.\n6. Like %s 's post.\nOption: " %(username,username,username,username,username,username)))
-
+    
+            #-------------------------MENU FOR OTHER USER--------------------------#
+            
             if username_choice==1:
                 user_id=get_user_id(username)
                 
@@ -373,8 +381,14 @@ while True:
                 print "Wrong input, try again...."
         continue
     elif user_option==3:
-        user_name=raw_input("Enter the username for which you want to determine it: ")
+        print "\nUsers present in the Sandbox are:\n(PLEASE REFER TO TO THE README.md FILE FROM GIT)\n\n(Admin)legenwait4itdary"
+        for i in added_sandbox_users.added_sandbox_users:
+            print i
+        user_name=raw_input("\nEnter the username: ")
         hashtag_analysis(user_name)
     elif user_option==4:
         print "\n--------------------------------------------------------------\nThe application will now exit...Thanks for using the INSTA-BOT"
-        exit()                
+        exit()                  # to exit the program
+    else:
+        print "Wrong Input...Try Again."
+    continue
