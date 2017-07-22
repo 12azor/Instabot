@@ -1,6 +1,7 @@
 import requests                                         #allows to send HTTP requests
 import urllib                                           #allows to fetch data across the World Wide Web
 import json
+import collections
 import access_token
 import matplotlib.pyplot as plt
 import added_sandbox_users
@@ -18,7 +19,7 @@ base_url="https://api.instagram.com/v1/"                #base url
 def self_info():
     url=base_url+"users/self/?access_token=%s"%(my_token)
     result= requests.get(url).json()
-    print(json.dumps(result, indent=3))
+    print(json.dumps(result["data"], indent=3))
 
     
     
@@ -28,7 +29,7 @@ def self_info():
 def get_user_info(user_id):
     url=base_url + ("users/%s/?access_token=%s") % (user_id, my_token)
     result=requests.get(url).json()
-    print(json.dumps(result, indent=3))
+    print(json.dumps(result["data"], indent=3))
 
     
     
@@ -104,7 +105,7 @@ def get_user_post(username):
         if user_media['meta']['code'] == 200:
             if len(user_media['data']):
                 #========MENU TO PUT PARAMETERS FOR SELECTING THE MEDIA========#                
-                option=int(raw_input("You want to choose the post on the basis of:\n1. Most Recent\n2. Max Likes\n3. Max Comments\n4. Least Comments.\n5. Least Likes.\nOption: "))
+                option=int(raw_input("\nYou want to choose the post on the basis of:\n1. Most Recent\n2. Max Likes\n3. Max Comments\n4. Least Comments.\n5. Least Likes.\nOption: "))
                                      
                 if option==1:                                   #for recent media
                     return user_media['data'][0]['id']
@@ -170,7 +171,7 @@ def view_media_comments(media_id):
     url=base_url+("media/%s/comments?access_token=%s")%(media_id,my_token)
     result=requests.get(url).json()
     if len(result["data"])==0:
-        print "\nThere is no comment on this post.\nMedia id is: %s" %(media_id)
+        print "\nThere is no comment on this post or the users who have comments are not added to the sandbox.\nMedia id is: %s" %(media_id)
     else:
         c=int(raw_input("If you want to see detailed info with comment press 1 else any other number for just comments: \n"))
         if c==1:
@@ -195,7 +196,7 @@ def self_download_post():
     image_name=raw_input("Enter the image name you want to save it with (append '.jpeg' at the end): ")     
     image_url = result['data'][0]['images']['standard_resolution']['url']
     urllib.urlretrieve(image_url, image_name )
-    print "Your image has been downloaded!"
+    print "\nYour image has been downloaded successfully!\n"
 
 
 
@@ -207,7 +208,7 @@ def user_download_post(user_name,media_id):
     user_id = get_user_id(user_name)
     if user_id != None:
         image_url=""
-        url = (base_url + 'users/%s/media/recent/?access_token=%s') % (user_id, my_token)
+        url = (base_url +"users/%s/media/recent/?access_token=%s") % (user_id, my_token)
         user_media = requests.get(url).json()
         image_name = raw_input("\nEnter the image name you want to save it with (append '.jpeg' at the end): ")
         for i in range(0,len(user_media["data"])):
@@ -216,9 +217,9 @@ def user_download_post(user_name,media_id):
                 break
         if len(image_url)!=0:
             urllib.urlretrieve(image_url, image_name)
-            print "Your image has been downloaded!"
+            print "\nYour image has been downloaded successfully!\n"
     else:
-        print "User Doesnot Exist"
+        print "User Does not Exist"
 
 
 
@@ -232,7 +233,7 @@ def make_a_comment(user_name):
         request_url = (base_url + "media/%s/comments") % (media_id)
         make_comment = requests.post(request_url, payload).json()
         if make_comment['meta']['code'] == 200:
-            print "\nSuccessfully added the comment!"
+            print "\nSuccessfully added the comment!\n"
         else:
             print "\nUnable to add the comment. Please try again!"
 
@@ -246,14 +247,14 @@ def like_a_post(user_name):
     url = (base_url + 'media/%s/likes') % (media_id)
     payload = {"access_token": my_token}
     post_a_like = requests.post(url, payload).json()
-    if post_a_like['meta']['code'] == 200:
-        print "\nThe post has been Liked"
+    if post_a_like["meta"]["code"] == 200:
+        print "\nThe post has been Liked.\n"
     else:
-        print "\nYour like was unsuccessful on the post. Please Try again!"
+        print "\nYour like was unsuccessful on the post. Please Try again!\n"
 
 
 
-
+#--------------------Function for Hashtag Analysis of a user--------------------#
 def hashtag_analysis(username):
     hashTags=[]
     search_url = (base_url + 'users/search?q=%s&access_token=%s') % (username, my_token)
@@ -263,7 +264,7 @@ def hashtag_analysis(username):
             user_id = []
             user_id = (result['data'][0]['id'])
             if user_id == None:
-                print "user id does not exist : "
+                print "User id does not exist : "
             else:
                 url = (base_url + "users/%s/media/recent/?access_token=%s" % (user_id, my_token))
                 show_media_details = requests.get(url).json()
@@ -271,21 +272,30 @@ def hashtag_analysis(username):
                     for i in range(0, len(show_media_details["data"])):
                         for j in show_media_details["data"][i]["tags"]:
                             hashTags.append(j)
-                    print "All the hashtags that the user has are:\n\n"+str(hashTags)
-                    max_tags = max(hashTags,key=hashTags.count)
-                    print "\nHashtag with maximum count is= "+str(max_tags)
-                    min_tags = min(hashTags,key=hashTags.count)
-                    print "\nHashtag with minimum count is= "+str(min_tags)
-                    labels = max_tags , min_tags        #lables to show on the 2 pies
-                    x = hashTags.count(max_tags)
-                    y = hashTags.count(min_tags)
-                    sizes = [x, y]                      #determins the size % of the pie( basically ratios)
-                    explode = (0, 0.2)                  #Lifts or explodes the second Pie Outwards 0.2x
-                    fig1, ax1 = plt.subplots()
-                    ax1.pie(sizes, explode, labels, autopct='%1.1f%%')
-                    ax1.axis("EQUAL")                   #Equal aspect ratio ensures that pie is drawn as a circle.
-                    plt.title("Hashtag Analysis Chart for the user - '%s'." %(username))
-                    plt.show()
+                    print "All the hashtags that the user has are:\n\n"+str(json.dumps(hashTags,indent=3))
+
+                    #----------------TO PUT MOST USED HASHTAGS IN ORDER IN LIST AND REMOVING DUPLICATES----------------#
+                    counter = {}
+                    for i in hashTags: counter[i] = counter.get(i, 0) + 1
+                    sorted([ (freq,word) for word, freq in counter.items() ], reverse=True)
+                    max_tags=sorted(counter,key=counter.__getitem__,reverse=True)
+
+                    #----------------TO PLOT THE HASTAGS ON A PIE-CHART----------------#
+                    length=len(max_tags)
+                    if length<=10:
+                        print "\nThe hashtags have to be more than 10 in all posts combined to determine interests. Try With differnt user, or add hashtags to your posts.\n"
+                    else:
+                        last_size=0
+                        for i in range(10,length):
+                            last_size+=counter[max_tags[i]]
+                        labels = "#"+max_tags[0] , "#"+max_tags[1] , "#"+max_tags[2] , "#"+max_tags[3] , "#"+ max_tags[4] , "#"+max_tags[5] , "#"+max_tags[6] , "#"+max_tags[7] , "#"+max_tags[8] , "#"+max_tags[9] , "others"       #lables to show on the 2 pies
+                        sizes = [ counter[max_tags[0]] , counter[max_tags[1]] , counter[max_tags[2]] , counter[max_tags[3]] , counter[max_tags[4]] , counter[max_tags[5]] , counter[max_tags[6]] , counter[max_tags[7]] , counter[max_tags[8]] , counter[max_tags[9]] , last_size]                #determins the size % of the pie( basically ratios)
+                        explode = (0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1)                  #Lifts or explodes the second Pie Outwards 0.2x
+                        ffig1, ax1 = plt.subplots()
+                        ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',shadow=False, startangle=90)
+                        ax1.axis("EQUAL")                   #Equal aspect ratio ensures that pie is drawn as a circle.
+                        plt.title("Hashtag Analysis Chart for the user - '%s'." %(username))
+                        plt.show()
                 else:
                     print "User has no media to operate upon."
         else:
@@ -305,7 +315,7 @@ def hashtag_analysis(username):
 
 print "\n*******WELCOME TO THE INSTA-BOT*******\n"
 while True:
-    user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. Determine a user's interests based on hashtag analysis of recent posts and plot the same using matplotlib.\n4. Exit.\nOption: "))
+    user_option=int(raw_input("Enter the number corresponding to the option you want to perform the actions on:\n1. Self\n2. Other Users\n3. Determine a user's interests based on hashtag analysis of recent posts and plot the same using matplotlib.\n4. Exit.\nOption: "))
     
     if user_option==1:
         choice_option=int(raw_input("Do you want to:\n1. Fetch and display your all user details.\n2. Fetch and display your recent post's details.\n3. Recent media liked.\nOption: "))
@@ -321,15 +331,15 @@ while True:
             if my_post_id==0:
                 print "Some other code other than 200 recieved."
             elif my_post_id != None:
-                print "My recent post's ID is: "+str(my_post_id)
-                print "The recent Image will now be downloaded...."
+                print "\nMy recent post's ID is: "+str(my_post_id)
+                print "\nThe recent Image will now be downloaded...."
                 self_download_post()
                 
         elif choice_option==3:
             recent_media_liked()
             
         else:
-            print "You have entered a wrong option. Try again./n"
+            print "\nYou have entered a wrong option. Try again./n"
             
         continue
     
@@ -351,14 +361,14 @@ while True:
                 if user_id==0:
                     print "Some Other code than 200 recieved."
                 else:
-                    print "User ID is: "+str(user_id)
+                    print "\nUser ID is: "+str(user_id)
                     
             elif username_choice==2:
                 media_id=get_user_post(username)
                 
                 if media_id!= None:
-                    print "The ID of recent media is: "+str(media_id)
-                    print "The Image with above ID will now be downloaded....."
+                    print "\nThe ID of recent media is: "+str(media_id)
+                    print "\nThe Image with above ID will now be downloaded....."
                     user_download_post(username,media_id)
 
             elif username_choice==3:
@@ -366,8 +376,7 @@ while True:
                 get_user_info(user_id)
 
             elif username_choice==4:
-                media_id=get_user_post(username)
-                
+                media_id=get_user_post(username)                
                 if media_id!=None:
                     view_media_comments(media_id)
 
