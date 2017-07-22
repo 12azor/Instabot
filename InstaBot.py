@@ -2,6 +2,9 @@ import requests
 import urllib
 import json
 import access_token
+import matplotlib.pyplot as plt
+
+
 my_token=access_token.token
 
 
@@ -246,7 +249,51 @@ def like_a_post(user_name):
         print "\nThe post has been Liked"
     else:
         print "\nYour like was unsuccessful on the post. Please Try again!"
-    
+
+
+
+
+def hashtag_analysis(username):
+    hashTags=[]
+    search_url = (base_url + 'users/search?q=%s&access_token=%s') % (username, my_token)
+    result = requests.get(search_url).json()
+    if result['meta']['code'] == 200:
+        if len(result['data']):
+            user_id = []
+            user_id = (result['data'][0]['id'])
+            if user_id == None:
+                print "user id does not exist : "
+            else:
+                url = (base_url + "users/%s/media/recent/?access_token=%s" % (user_id, my_token))
+                show_media_details = requests.get(url).json()
+                if len(show_media_details['data']):     #loop to get all the hastags of all the media
+                    for i in range(0, len(show_media_details["data"])):
+                        for j in show_media_details["data"][i]["tags"]:
+                            hashTags.append(j)
+                    print "All the hashtags that the user has are:\n\n"+str(hashTags)
+                    max_tags = max(hashTags,key=hashTags.count)
+                    print "\nHashtag with maximum count is= "+str(max_tags)
+                    min_tags = min(hashTags,key=hashTags.count)
+                    print "\nHashtag with minimum count is= "+str(min_tags)
+                    labels = max_tags , min_tags        #lables to show on the 2 pies
+                    x = hashTags.count(max_tags)
+                    y = hashTags.count(min_tags)
+                    sizes = [x, y]                      #determins the size % of the pie( basically ratios)
+                    explode = (0, 0.2)                  #Lifts or explodes the second Pie Outwards 0.2x
+                    fig1, ax1 = plt.subplots()
+                    ax1.pie(sizes, explode, labels, autopct='%1.1f%%')
+                    ax1.axis("EQUAL")                   #Equal aspect ratio ensures that pie is drawn as a circle.
+                    plt.title("Hashtag Analysis Chart for the user - '%s'." %(username))
+                    plt.show()
+                else:
+                    print "User has no media to operate upon."
+        else:
+            print "Either the user does not exist or there is no data present to operate on."
+    else:
+        print "Status code other than 200 recieved."
+
+
+        
 
 
 ##################################################################################################################
@@ -257,7 +304,7 @@ def like_a_post(user_name):
 
 print "\n*******WELCOME TO THE INSTA-BOT*******\n"
 while True:
-    user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. Exit.\nOption: "))
+    user_option=int(raw_input("Enter the number corresponding to the options you want to perform the actions on:\n1. Self\n2. Other Users\n3. determine a user's interests based on hashtag analysis of recent posts and plot the same using matplotlib.\n4. Exit.\nOption: "))
     
     if user_option==1:
         choice_option=int(raw_input("Do you want to:\n1. Fetch and display your all user details.\n2. Fetch and display your recent post's details.\n3. Recent media liked.\nOption: "))
@@ -326,5 +373,8 @@ while True:
                 print "Wrong input, try again...."
         continue
     elif user_option==3:
+        user_name=raw_input("Enter the username for which you want to determine it: ")
+        hashtag_analysis(user_name)
+    elif user_option==4:
         print "\n--------------------------------------------------------------\nThe application will now exit...Thanks for using the INSTA-BOT"
         exit()                
