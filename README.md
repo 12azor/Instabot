@@ -5,10 +5,10 @@ GUIDE FOR ADDED SANDBOX USERS:
 
 =(admin)Legenwait4itdary: has many posts, many hashtags.
 
-=hastag_username: has 0 posts.
+=hastag_username: has 0 posts,0 hashtags,No bio.
 
-=asifahmed3877: has 1 post, 1 hastag.
+==bhavana.singh.10: has many posts, many hashtags.
+
+=asifahmed3877: has 1 post, 1 hashtag.
 
 =anisha_lamichhane: has many posts, 2 hashtags.
-
-=bhavana.singh.10: has many posts, many hashtags.
